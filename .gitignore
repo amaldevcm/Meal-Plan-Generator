@@ -1,0 +1,14 @@
+# General for all folders in project
+.env
+.vscode/
+
+# Backend specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Frontend specific
+node_modules/
+dist/
+build/
