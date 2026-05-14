@@ -1,0 +1,5 @@
+argon2-cffi==25.1.0
+fastapi==0.136.1
+PyJWT==2.12.1
+python-dotenv==1.2.2
+SQLAlchemy==2.0.49

@@ -1,15 +1,14 @@
 import uuid
 from sqlalchemy import Column, DateTime, ForeignKey, String, UUID
 from sqlalchemy.dialects.postgresql import ARRAY
-from Backend.DB import Base
+from DB import Base
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True, nullable=False)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     phone_number = Column(String)
     password = Column(String, nullable=False)
     created_date = Column(DateTime)
@@ -36,6 +35,6 @@ class Session(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True)
     session_token = Column(String, unique=True)
-    ttl = Column(String)
+    ttl = Column(DateTime)
     created_date = Column(DateTime)
     updated_date = Column(DateTime)

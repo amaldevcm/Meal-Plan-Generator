@@ -1,11 +1,22 @@
+import os
 import uuid
-from DB import SessionLocal
-import datetime
 import re
-from Schemas.Schema import User, UserPreferences
+import jwt
+from datetime import datetime, timedelta
+from DB import SessionLocal
+from dotenv import load_dotenv
+from argon2 import PasswordHasher
+from Schemas.Schema import Session, User, UserPreferences
+
+load_dotenv()
 
 current_user = None
 current_user_preferences = None
+passwordHasher = PasswordHasher()
+secret_key = os.getenv("JWT_SECRET_KEY")
+algorithm = os.getenv("JWT_ALGORITHM")
+access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES"))
+
 
 # User creation function
 def create_user(user_data: dict):
@@ -13,15 +24,15 @@ def create_user(user_data: dict):
 
     # Validate and process user_data
     email = user_data.get("email")
-    first_name = user_data.get("first_name")
-    last_name = user_data.get("last_name")
-    password = user_data.get("password")
+    name = user_data.get("name")
+    password = passwordHasher.hash(user_data.get("password"))
+    print("hashed password:", password)
 
     if not email:
         raise ValueError("Email is required")
     
-    if not first_name or not last_name:
-        raise ValueError("First and last name are required")
+    if not name:
+        raise ValueError("Name is required")
 
     # Simple email format validation
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -33,10 +44,22 @@ def create_user(user_data: dict):
         createdDate = datetime.now()
         new_user = User(
             id = str(uuid.uuid4()),
-            first_name=first_name,
-            last_name=last_name,
+            name=name,
             email=email,
             password=password,
+            created_date=createdDate,
+            updated_date=createdDate,
+        )
+
+        # Create JWT
+        expire = datetime.now() + timedelta(minutes=access_token_expire_minutes)
+        jwt_token = jwt.encode({"sub": new_user.id, "exp": expire}, secret_key, algorithm=algorithm)
+
+        newSession = Session(
+            id=str(uuid.uuid4()),
+            user_id=new_user.id,
+            session_token=jwt_token,
+            ttl=expire,
             created_date=createdDate,
             updated_date=createdDate,
         )
@@ -44,12 +67,17 @@ def create_user(user_data: dict):
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        
+        db.add(newSession)
+        db.commit()
+        db.refresh(newSession)
     except Exception as e:
         db.rollback()
         raise Exception(f"Error creating user: {str(e)}")
     finally:
         db.close()
 
+    new_user.sessionToken = jwt_token
     current_user = new_user
     return new_user
 
