@@ -18,13 +18,19 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-
 @app.post('/api/signup')
 async def signup(data: dict):
     user = create_user(data)
     if user is None:
         return {"status": "error", "message": "User already exists"}
-    return {"status": "success", "message": "Signup successful", "user": {"user_id": user.id, "email": user.email, "name": user.name, "sessionToken": user.sessionToken}}
+    return {"status": "success", "message": "Signup successful", "user": {"user_id": user.id, "email": user.email, "name": user.name}}
+
+@app.post('/api/login')
+async def login(data: dict):
+    user = login_user(data.get("email"), data.get("password"))
+    if user is None:
+        return {"status": "error", "message": "Invalid email or password"}
+    return {"status": "success", "message": "Login successful", "user": {"user_id": user.id, "email": user.email, "name": user.name}}
 
 @app.post('/api/preferences')
 async def set_preferences(preferences_data: dict):

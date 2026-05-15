@@ -34,7 +34,7 @@ class Session(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True)
-    session_token = Column(String, unique=True)
+    refresh_token = Column(String, unique=True)
     ttl = Column(DateTime)
     created_date = Column(DateTime)
     updated_date = Column(DateTime)

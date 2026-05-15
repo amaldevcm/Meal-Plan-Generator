@@ -17,7 +17,6 @@ secret_key = os.getenv("JWT_SECRET_KEY")
 algorithm = os.getenv("JWT_ALGORITHM")
 access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES"))
 
-
 # User creation function
 def create_user(user_data: dict):
     global current_user
@@ -51,36 +50,17 @@ def create_user(user_data: dict):
             updated_date=createdDate,
         )
 
-        # Create JWT
-        expire = datetime.now() + timedelta(minutes=access_token_expire_minutes)
-        jwt_token = jwt.encode({"sub": new_user.id, "exp": expire}, secret_key, algorithm=algorithm)
-
-        newSession = Session(
-            id=str(uuid.uuid4()),
-            user_id=new_user.id,
-            session_token=jwt_token,
-            ttl=expire,
-            created_date=createdDate,
-            updated_date=createdDate,
-        )
-
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        
-        db.add(newSession)
-        db.commit()
-        db.refresh(newSession)
     except Exception as e:
         db.rollback()
         raise Exception(f"Error creating user: {str(e)}")
     finally:
         db.close()
 
-    new_user.sessionToken = jwt_token
     current_user = new_user
     return new_user
-
 
 # User preferences creation function
 def create_user_preferences(user_id: str, preferences_data: dict):
@@ -118,7 +98,7 @@ def login_user(email: str, password: str):
     try:
         db = SessionLocal()
         user = db.query(User).filter(User.email == email).first()
-        if user and user.password == password:
+        if user and passwordHasher.verify(user.password, password):
             current_user = user
             return user
         else:
@@ -127,7 +107,6 @@ def login_user(email: str, password: str):
         raise Exception(f"Error logging in: {str(e)}")
     finally:
         db.close()
-
 
 # Get current user and preferences
 def get_current_user():
