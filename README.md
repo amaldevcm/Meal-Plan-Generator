@@ -42,8 +42,8 @@ An AI-powered meal planning web app that generates personalized 5-meal plans wit
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/mealplanner-ai.git
-cd mealplanner-ai/backend
+git clone https://github.com/yourusername/meal-plan-generator.git
+cd meal-plan-generator/backend
 
 # Create virtual environment
 python -m venv .venv
@@ -56,11 +56,8 @@ pip install -r requirements.txt
 cp .env.example .env
 # Fill in your keys in .env
 
-# Run database migrations
-alembic upgrade head
-
 # Start the server
-uvicorn main:app --reload
+fastapi dev
 ```
 
 ### Frontend Setup
