@@ -8,7 +8,7 @@ from Services.UserServices import create_user, create_user_preferences, get_curr
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this in production to specific origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,14 +28,16 @@ async def signup(data: dict):
 @app.post('/api/login')
 async def login(data: dict):
     user = login_user(data.get("email"), data.get("password"))
+    
     if user is None:
         return {"status": "error", "message": "Invalid email or password"}
     return {"status": "success", "message": "Login successful", "user": {"user_id": user.id, "email": user.email, "name": user.name}}
 
+# Endpoint to set user preferences
 @app.post('/api/preferences')
 async def set_preferences(preferences_data: dict):
     if  get_current_user() is None:
         return {"status": "error", "message": "User not authenticated"}
     
-    user_preferences = create_user_preferences(get_current_user().id, preferences_data)
-    return {"status": "success", "message": "Preferences saved successfully", "preferences": user_preferences}
+    meal_plans = create_user_preferences(get_current_user().id, preferences_data)
+    return {"status": "success", "message": "Preferences saved successfully", "meal_plans": meal_plans}

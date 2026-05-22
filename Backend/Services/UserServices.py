@@ -2,11 +2,13 @@ import os
 import uuid
 import re
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime
 from DB import SessionLocal
 from dotenv import load_dotenv
 from argon2 import PasswordHasher
-from Schemas.Schema import Session, User, UserPreferences
+from Schemas.Schema import Session, User, UserPreference, MealPlan
+from Services.MealPlanServices import generateLLMResopnse
+from Prompts.MealPlanPrompt import get_meal_plan_prompt
 
 load_dotenv()
 
@@ -25,7 +27,7 @@ def create_user(user_data: dict):
     email = user_data.get("email")
     name = user_data.get("name")
     password = passwordHasher.hash(user_data.get("password"))
-    print("hashed password:", password)
+    # print("hashed password:", password)
 
     if not email:
         raise ValueError("Email is required")
@@ -63,24 +65,24 @@ def create_user(user_data: dict):
     return new_user
 
 # User preferences creation function
-def create_user_preferences(user_id: str, preferences_data: dict):
+def create_user_preferences(preferences_data: dict):
     global current_user_preferences
     try:
         db = SessionLocal()
         createdDate = datetime.now()
-        new_preferences = UserPreferences(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            dietary_lifestyle=preferences_data.get("dietary_lifestyle", None),
-            allergies=preferences_data.get("allergies", []),
-            health_conditions=preferences_data.get("health_conditions", []),
-            nutritional_goals=preferences_data.get("nutritional_goals", []),
-            cuisine_preferences=preferences_data.get("cuisine_preferences", []),
-            cooking_skill_level=preferences_data.get("cooking_skill_level", None),
-            created_date=createdDate,
-            updated_date=createdDate,
+        new_preferences = UserPreference(
+            id = str(uuid.uuid4()),
+            user_id = current_user.get(id),
+            dietary_lifestyle = preferences_data.get("dietary_lifestyle", None),
+            allergies = preferences_data.get("allergies", []),
+            health_conditions = preferences_data.get("health_conditions", []),
+            nutritional_goals = preferences_data.get("nutritional_goals", []),
+            cuisine_preferences = preferences_data.get("cuisine_preferences", []),
+            cooking_skill_level = preferences_data.get("cooking_skill_level", None),
+            created_date = createdDate,
+            updated_date = createdDate,
         )
-
+        
         db.add(new_preferences)
         db.commit()
         db.refresh(new_preferences)
@@ -89,8 +91,52 @@ def create_user_preferences(user_id: str, preferences_data: dict):
         raise Exception(f"Error creating user preferences: {str(e)}")
     finally:
         db.close()
-    current_user_preferences = new_preferences
-    return current_user_preferences
+
+    current_user_preferences = preferences_data
+    return create_meal_plan(preferences_data)
+
+# Meal plan creation function
+def create_meal_plan(preferences: dict):
+    global current_meal_plan
+    
+    meal_plans = generateLLMResopnse(get_meal_plan_prompt(preferences))
+    current_meal_plan = meal_plans["meal_plan"]
+
+    try:
+        db = SessionLocal()
+        createdDate = datetime.now()
+
+        for meal in meal_plans:
+            mealPlan = MealPlan(
+                id = str(uuid.uuid4()),
+                user_id = current_user.get(id),
+                meal_number = meal.get("meal_number"),
+                meal_name = meal.get("meal_name"),
+                cuisine_type = meal.get("cousine_type"),
+                cook_time_minutes = meal.get("cook_time_minutes"),
+                estimated_cost = meal.get("estimated_cost"),
+                calories_per_serving = meal.get("calories_per_serving"),
+                ingredients = meal.get("ingredients"),
+                instructions = meal.get("instructions"),
+                created_date = createdDate,
+                updated_date = createdDate
+            )
+
+            db.add(mealPlan)
+            db.commit()
+            db.refresh(mealPlan)
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Error creating meal plans: {str(e)}")
+    finally:
+        db.close()
+
+    # Generate meal plan using LLM based on user preferences
+    meal_plans = generateLLMResopnse(get_meal_plan_prompt(current_user_preferences))
+    current_meal_plan = meal_plans["meal_plan"]
+
+    return meal_plans["meal_plan"]
+
 
 # User login function
 def login_user(email: str, password: str):

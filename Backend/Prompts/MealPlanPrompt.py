@@ -23,9 +23,9 @@ def get_meal_plan_prompt(preferences):
         10. Serving size must be accounted for in all quantities.
 
         OUTPUT FORMAT (strict JSON, no extra text):
-        {
+        {{
         "meal_plan": [
-            {
+            {{
             "meal_number": 1,
             "meal_name": "",
             "cuisine_type": "",
@@ -33,15 +33,15 @@ def get_meal_plan_prompt(preferences):
             "estimated_cost": 0.00,
             "calories_per_serving": 0,
             "ingredients": [
-                {"name": "", "quantity": "", "unit": ""}
+                {{"name": "", "quantity": "", "unit": ""}}
             ],
             "instructions": ""
-            }
+            }}
         ],
         "grocery_list": [
-            {"name": "", "total_quantity": "", "unit": "", "category": ""}
+            {{"name": "", "total_quantity": "", "unit": "", "category": ""}}
         ]
-        }
+        }}
 
         GROCERY LIST RULES:
         - Consolidate duplicate ingredients across all meals into a single entry.
