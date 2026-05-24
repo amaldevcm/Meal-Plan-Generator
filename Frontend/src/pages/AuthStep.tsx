@@ -4,8 +4,10 @@ import { ArrowRight } from 'lucide-react'
 import axios from 'axios'
 
 
+type AppStep = 'auth' | 'diet' | 'goals' | 'main'
+
 interface AuthStepProps {
-    onNext: (name: string) => void
+    onNext: (user: any, tab: AppStep) => void
 }
 
 interface UserData {
@@ -20,7 +22,7 @@ const HEADERS = {
 }
 
 export function AuthStep({ onNext }: AuthStepProps) {
-    const [isLogin, setIsLogin] = useState(false)
+    const [isLogin, setIsLogin] = useState(true)
     const [userData, setUserData] = useState<UserData>({
         name: '',
         email: '',
@@ -30,12 +32,12 @@ export function AuthStep({ onNext }: AuthStepProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (isLogin) {
 
+        if (isLogin) {
             axios.post(SERVER_URL + '/api/login', userData, { headers: HEADERS }).then((response) => {
                 console.log(response.data)
                 if (response.data.status === 'success') {
-                    onNext(response.data.user.name || 'Guest')
+                    onNext(response.data.user, 'main')
                 }
             }).catch((error) => {
                 console.error('Error during login:', error)
@@ -52,7 +54,7 @@ export function AuthStep({ onNext }: AuthStepProps) {
             }).catch((error) => {
                 console.error('Error during signup:', error)
             })
-            onNext(userData.name || 'Guest')
+            onNext(userData, 'diet')
         }
     }
 

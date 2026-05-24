@@ -2,29 +2,21 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { IngredientRow } from '../components/IngredientRow'
-import { mockIngredients } from '../data/mock'
+import type { Ingredient } from '../types'
 
-export function Ingredients() {
-    const [ingredients, setIngredients] = useState(mockIngredients)
+interface IngredientsProps {
+    groceries: Ingredient[]
+    onToggle: (id: string) => void
+}
+
+export function Ingredients({ groceries, onToggle }: IngredientsProps) {
     const [searchQuery, setSearchQuery] = useState('')
-    const toggleIngredient = (id: string) => {
-        setIngredients((prev) =>
-            prev.map((ing) =>
-                ing.id === id
-                    ? {
-                        ...ing,
-                        acquired: !ing.acquired,
-                    }
-                    : ing,
-            ),
-        )
-    }
-    const filteredIngredients = ingredients.filter((ing) =>
+    const filteredIngredients = groceries.filter((ing) =>
         ing.name.toLowerCase().includes(searchQuery.toLowerCase()),
     )
-    const acquiredCount = ingredients.filter((i) => i.acquired).length
-    const totalCount = ingredients.length
-    const progress = (acquiredCount / totalCount) * 100
+    const acquiredCount = groceries.filter((i) => i.acquired).length
+    const totalCount = groceries.length
+    const progress = totalCount > 0 ? (acquiredCount / totalCount) * 100 : 0
     const categories = Array.from(
         new Set(filteredIngredients.map((i) => i.category)),
     )
@@ -91,7 +83,7 @@ export function Ingredients() {
                                     <IngredientRow
                                         key={ingredient.id}
                                         ingredient={ingredient}
-                                        onToggle={toggleIngredient}
+                                        onToggle={onToggle}
                                     />
                                 ))}
                             </div>
@@ -102,7 +94,9 @@ export function Ingredients() {
                 {filteredIngredients.length === 0 && (
                     <div className="text-center py-12">
                         <p className="text-gray-500">
-                            No ingredients found matching "{searchQuery}"
+                            {groceries.length === 0
+                                ? 'Your grocery list is empty. Add ingredients from your meal plans!'
+                                : `No ingredients found matching "${searchQuery}"`}
                         </p>
                     </div>
                 )}

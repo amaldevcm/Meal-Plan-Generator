@@ -126,10 +126,10 @@ export function DietStep({ userState, updateState, onNext, onBack }: DietStepPro
                                 variant="card"
                                 label={lifestyle.label}
                                 icon={lifestyle.icon}
-                                selected={userState.diet === lifestyle.id}
+                                selected={userState.dietary_lifestyle === lifestyle.id}
                                 onClick={() =>
                                     updateState({
-                                        diet: lifestyle.id,
+                                        dietary_lifestyle: lifestyle.id,
                                     })
                                 }
                             />
@@ -167,7 +167,7 @@ export function DietStep({ userState, updateState, onNext, onBack }: DietStepPro
                 <div className="max-w-md mx-auto">
                     <button
                         onClick={onNext}
-                        disabled={!userState.diet}
+                        disabled={!userState.dietary_lifestyle}
                         className="w-full bg-primary text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-float"
                     >
                         Continue

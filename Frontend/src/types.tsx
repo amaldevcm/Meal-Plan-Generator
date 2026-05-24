@@ -1,26 +1,28 @@
 export interface UserState {
     name: string
-    diet: string
+    dietary_lifestyle: string
     allergies: string[]
-    goals: string[]
-    cuisines: string[]
-    healthConditions: string[]
+    nutritional_goals: string[]
+    health_conditions: string[]
+    cuisine_preferences: string[]
+}
+
+export interface MealIngredient {
+    name: string
+    quantity: number
+    unit: string
+    type: string
 }
 
 export interface Meal {
-    id: string
+    meal_number: string
     type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack'
-    name: string
-    calories: number
-    prepTime: number // in minutes
+    meal_name: string
+    calories_per_serving: number
+    cook_time_minutes: number // in minutes
     emoji: string
-}
-
-export interface DayPlan {
-    id: string
-    dayOfWeek: string
-    date: string
-    meals: Meal[]
+    ingredients: MealIngredient[]
+    cuisine_type: string
 }
 
 export interface Ingredient {

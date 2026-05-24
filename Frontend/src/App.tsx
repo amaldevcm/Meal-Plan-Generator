@@ -1,27 +1,52 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { AuthStep } from './pages/AuthStep'
 import { DietStep } from './pages/DietStep'
 import { GoalsStep } from './pages/GoalsStep'
 import { MealPlans } from './pages/MealPlans'
 import { Ingredients } from './pages/Ingredients'
 import { BottomNav } from './components/BottomNav'
-import { AnimatePresence, motion } from 'framer-motion'
-
-import type { UserState } from './types'
+import type { UserState, Meal, Ingredient } from './types'
 
 type AppStep = 'auth' | 'diet' | 'goals' | 'main'
 type MainTab = 'meals' | 'ingredients'
 
+function inferCategory(ing_type: string): Ingredient['category'] {
+  const type = ing_type.charAt(0).toUpperCase() + ing_type.slice(1)
+  if (type === "Produce")
+    return 'Produce'
+  if (type === "Proteins")
+    return 'Proteins'
+  if (type === "Dairy")
+    return 'Dairy'
+  if (type === "Grains")
+    return 'Grains'
+  if (type === "Spices")
+    return 'Spices'
+  return 'Pantry'
+}
+
+function formatQty(qty: number, unit: string): string {
+  let qtyStr: string
+  if (qty === 0.25) qtyStr = '¼'
+  else if (qty === 0.5) qtyStr = '½'
+  else if (qty === 0.75) qtyStr = '¾'
+  else if (Number.isInteger(qty)) qtyStr = String(qty)
+  else qtyStr = qty.toString()
+  return `${qtyStr} ${unit}`
+}
+
 export default function App() {
   const [step, setStep] = useState<AppStep>('auth')
   const [activeTab, setActiveTab] = useState<MainTab>('meals')
+  const [groceries, setGroceries] = useState<Ingredient[]>([])
   const [userState, setUserState] = useState<UserState>({
     name: '',
-    diet: '',
+    dietary_lifestyle: '',
     allergies: [],
-    goals: [],
-    healthConditions: [],
-    cuisines: [],
+    nutritional_goals: [],
+    health_conditions: [],
+    cuisine_preferences: [],
   })
 
   const updateUserState = (updates: Partial<UserState>) => {
@@ -31,11 +56,45 @@ export default function App() {
     }))
   }
 
-  const handleAuthNext = (name: string) => {
-    updateUserState({
-      name,
+  const handleAuthNext = (user: any, tab: AppStep) => {
+    updateUserState(user)
+    setStep(tab)
+  }
+
+  const addMealToGroceries = (meal: Meal): number => {
+    let addedCount = 0
+    setGroceries((prev) => {
+      const existingNames = new Set(prev.map((i) => i.name.toLowerCase()))
+      const newItems: Ingredient[] = []
+      meal.ingredients.forEach((ing) => {
+        if (!existingNames.has(ing.name.toLowerCase())) {
+          newItems.push({
+            id: `${meal.meal_number}-${ing.name}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            name: ing.name,
+            quantity: formatQty(ing.quantity, ing.unit),
+            category: inferCategory(ing.type),
+            acquired: false,
+          })
+          existingNames.add(ing.name.toLowerCase())
+        }
+      })
+      addedCount = newItems.length
+      return [...prev, ...newItems]
     })
-    setStep('diet')
+    return addedCount
+  }
+
+  const toggleGrocery = (id: string) => {
+    setGroceries((prev) =>
+      prev.map((ing) =>
+        ing.id === id
+          ? {
+            ...ing,
+            acquired: !ing.acquired,
+          }
+          : ing,
+      ),
+    )
   }
 
   const pageVariants = {
@@ -52,11 +111,13 @@ export default function App() {
       x: -20,
     },
   }
+
   const pageTransition = {
     type: 'tween',
     ease: 'anticipate',
     duration: 0.4,
   }
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
       <AnimatePresence mode="wait">
@@ -123,9 +184,12 @@ export default function App() {
             className="h-full relative"
           >
             {activeTab === 'meals' ? (
-              <MealPlans userState={userState} />
+              <MealPlans
+                userState={userState}
+                onAddToGroceries={addMealToGroceries}
+              />
             ) : (
-              <Ingredients />
+              <Ingredients groceries={groceries} onToggle={toggleGrocery} />
             )}
             <BottomNav activeTab={activeTab} onChange={setActiveTab} />
           </motion.div>

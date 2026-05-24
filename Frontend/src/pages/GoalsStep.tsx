@@ -65,25 +65,23 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
     const handleGenerate = () => {
         setIsGenerating(true)
         axios.post(`${SERVER_URL}/api/preferences`, {
-            dietary_lifestyle: userState.diet,
+            dietary_lifestyle: userState.dietary_lifestyle,
             allergies: userState.allergies,
-            health_conditions: userState.healthConditions,
-            nutritional_goals: userState.goals,
-            cuisine_preferences: userState.cuisines,
+            health_conditions: userState.health_conditions,
+            nutritional_goals: userState.nutritional_goals,
+            cuisine_preferences: userState.cuisine_preferences,
             cooking_skill_level: "beginner",
         }, {
             headers: HEADERS,
         }).then((response) => {
             console.log('Preferences saved:', response.data)
+            onNext()
         }).catch((error) => {
             console.error('Error saving preferences:', error)
+            onBack()
         }).finally(() => {
             setIsGenerating(false)
         })
-
-        setTimeout(() => {
-            onNext()
-        }, 2000)
     }
     const container = {
         hidden: {
@@ -145,8 +143,8 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
                                     <ChipSelect
                                         variant="pill"
                                         label={goal}
-                                        selected={userState.goals.includes(goal)}
-                                        onClick={() => toggleItem('goals', goal)}
+                                        selected={userState.nutritional_goals.includes(goal)}
+                                        onClick={() => toggleItem('nutritional_goals', goal)}
                                     />
                                 </motion.div>
                             ))}
@@ -171,8 +169,8 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
                                     <ChipSelect
                                         variant="pill"
                                         label={cond}
-                                        selected={userState.healthConditions.includes(cond)}
-                                        onClick={() => toggleItem('healthConditions', cond)}
+                                        selected={userState.health_conditions.includes(cond)}
+                                        onClick={() => toggleItem('health_conditions', cond)}
                                     />
                                 </motion.div>
                             ))}
@@ -194,8 +192,8 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
                                     <ChipSelect
                                         variant="pill"
                                         label={cuisine}
-                                        selected={userState.cuisines.includes(cuisine)}
-                                        onClick={() => toggleItem('cuisines', cuisine)}
+                                        selected={userState.cuisine_preferences.includes(cuisine)}
+                                        onClick={() => toggleItem('cuisine_preferences', cuisine)}
                                     />
                                 </motion.div>
                             ))}
