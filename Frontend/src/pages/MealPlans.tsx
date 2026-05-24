@@ -44,10 +44,11 @@ export function MealPlans({ userState, onAddToGroceries, editPreferences }: Meal
 
                     console.log("Total calories:", totalCals);
                     setTotalCalories(totalCals);
-                    setIsLoading(false);
                 }
             }).catch((error) => {
                 console.error('Error saving preferences:', error)
+            }).finally(() => {
+                setIsLoading(false)
             })
     }, [setMealPlan])
 
@@ -65,10 +66,11 @@ export function MealPlans({ userState, onAddToGroceries, editPreferences }: Meal
                         0,
                     )
                     setTotalCalories(totalCals);
-                    setIsGenerating(false);
                 }
             }).catch((error) => {
                 console.error('Error saving preferences:', error)
+            }).finally(() => {
+                setIsGenerating(false);
             })
     }
 

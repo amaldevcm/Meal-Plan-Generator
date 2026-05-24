@@ -13,7 +13,7 @@ PORT = os.getenv("SUPABASE_PORT")
 DBNAME = os.getenv("SUPABASE_DB")
 
 # Construct the SQLAlchemy connection string
-DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
+DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 
 # Create engine
 engine = create_engine(DATABASE_URL, echo=True)
