@@ -13,7 +13,6 @@ from Prompts.MealPlanPrompt import get_meal_plan_prompt
 load_dotenv()
 
 current_user = None
-current_user_preferences = None
 passwordHasher = PasswordHasher()
 secret_key = os.getenv("JWT_SECRET_KEY")
 algorithm = os.getenv("JWT_ALGORITHM")
@@ -61,18 +60,20 @@ def create_user(user_data: dict):
     finally:
         db.close()
 
-    current_user = new_user
-    return new_user
+    current_user = new_user.__dict__.copy()
+    current_user['current_preferences'] = None
+    current_user.pop("password")
+    return current_user
 
 # User preferences creation function
 def create_user_preferences(preferences_data: dict):
-    global current_user_preferences
+    global current_user
     try:
         db = SessionLocal()
         createdDate = datetime.now()
         new_preferences = UserPreference(
             id = str(uuid.uuid4()),
-            user_id = current_user.get(id),
+            user_id = current_user.get("id"),
             dietary_lifestyle = preferences_data.get("dietary_lifestyle", None),
             allergies = preferences_data.get("allergies", []),
             health_conditions = preferences_data.get("health_conditions", []),
@@ -82,6 +83,8 @@ def create_user_preferences(preferences_data: dict):
             created_date = createdDate,
             updated_date = createdDate,
         )
+
+        db.query(User).filter(User.id == current_user.get('id')).update({'current_preferences': new_preferences.id})
         
         db.add(new_preferences)
         db.commit()
@@ -92,8 +95,11 @@ def create_user_preferences(preferences_data: dict):
     finally:
         db.close()
 
-    current_user_preferences = preferences_data
-    return create_meal_plan(preferences_data)
+    meal_plan = create_meal_plan(preferences_data)
+    current_user['preferences'] = preferences_data
+    current_user['meal_plan'] = meal_plan
+
+    return { "preferences": preferences_data, "meal_plan": meal_plan }
 
 # Meal plan creation function
 def create_meal_plan(preferences: dict):
@@ -101,18 +107,19 @@ def create_meal_plan(preferences: dict):
     
     meal_plans = generateLLMResopnse(get_meal_plan_prompt(preferences))
     current_meal_plan = meal_plans["meal_plan"]
+    print(f"Type of meal plan: {type(current_meal_plan)}")
 
     try:
         db = SessionLocal()
         createdDate = datetime.now()
-
-        for meal in meal_plans:
+        new_meals = []
+        for meal in current_meal_plan:
             mealPlan = MealPlan(
                 id = str(uuid.uuid4()),
-                user_id = current_user.get(id),
+                user_id = current_user.get("id"),
                 meal_number = meal.get("meal_number"),
                 meal_name = meal.get("meal_name"),
-                cuisine_type = meal.get("cousine_type"),
+                cuisine_type = meal.get("cuisine_type"),
                 cook_time_minutes = meal.get("cook_time_minutes"),
                 estimated_cost = meal.get("estimated_cost"),
                 calories_per_serving = meal.get("calories_per_serving"),
@@ -121,22 +128,20 @@ def create_meal_plan(preferences: dict):
                 created_date = createdDate,
                 updated_date = createdDate
             )
-
+            new_meals.append(mealPlan.id)
             db.add(mealPlan)
-            db.commit()
-            db.refresh(mealPlan)
+
+        db.query(MealPlan).filter(MealPlan.user_id == current_user.get("id") and MealPlan.id not in new_meals).delete()
+
+        db.commit()
+        db.refresh(mealPlan)
     except Exception as e:
         db.rollback()
         raise Exception(f"Error creating meal plans: {str(e)}")
     finally:
         db.close()
 
-    # Generate meal plan using LLM based on user preferences
-    meal_plans = generateLLMResopnse(get_meal_plan_prompt(current_user_preferences))
-    current_meal_plan = meal_plans["meal_plan"]
-
     return meal_plans["meal_plan"]
-
 
 # User login function
 def login_user(email: str, password: str):
@@ -145,14 +150,54 @@ def login_user(email: str, password: str):
         db = SessionLocal()
         user = db.query(User).filter(User.email == email).first()
         if user and passwordHasher.verify(user.password, password):
-            current_user = user
-            return user
+            current_user = user.__dict__.copy()
+
+            current_user = current_user | get_user_preferences(current_user.get("current_preferences"))
+
+            current_user.pop("password")
+            return current_user
         else:
             raise ValueError("Invalid email or password")
     except Exception as e:
         raise Exception(f"Error logging in: {str(e)}")
     finally:
         db.close()
+
+# Fetch meal plans 
+def get_meal_plan(is_new:bool = False):
+    global current_user, current_meal_plan
+    
+    db = SessionLocal()
+    try:
+        if(is_new):
+            return create_meal_plan(current_user_preferences)
+        meal_plan = db.query(MealPlan).filter(MealPlan.user_id == current_user.get("id")).all()       
+
+    except Exception as e:
+        raise Exception(f"Error fetching meal plan {str(e)}")
+    finally:
+        db.close()
+    return meal_plan
+    
+# Fetch user preferences
+def get_user_preferences(preference_id: str):
+    global current_user, current_user_preferences
+
+    try:
+        db = SessionLocal()
+        preferences = db.query(UserPreference).filter(UserPreference.id == preference_id).first()
+    except Exception as e:
+        raise Exception(f"Error fetching user preferences {str(e)}")
+    finally:
+        db.close()
+
+    current_user_preferences = preferences.__dict__.copy()
+    current_user_preferences.pop("created_date")
+    current_user_preferences.pop("updated_date")
+    current_user_preferences.pop("user_id")
+    current_user_preferences.pop("id")
+    return current_user_preferences
+    
 
 # Get current user and preferences
 def get_current_user():

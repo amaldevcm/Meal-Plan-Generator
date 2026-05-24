@@ -14,7 +14,7 @@ claude_client = Anthropic(
 def generateLLMResopnse(prompt):
     try:
         message = claude_client.messages.create(
-            max_tokens=1024,
+            max_tokens=4096,
             messages=[
                 {
                     "role": "user",
@@ -23,10 +23,10 @@ def generateLLMResopnse(prompt):
             ],
             model="claude-opus-4-7",
         )
-        
+        # print("LLM Response: ",message.content[0].text)
         return format_ouput(message.content[0].text)
     except Exception as error:
-        return error
+        raise Exception(f"LLM error {error}")
 
 
 def generateGroqResponse(prompt):

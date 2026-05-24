@@ -33,21 +33,16 @@ def get_meal_plan_prompt(preferences):
             "estimated_cost": 0.00,
             "calories_per_serving": 0,
             "ingredients": [
-                {{"name": "", "quantity": "", "unit": ""}}
+                {{"name": "", "quantity": "", "unit": "", "type": ""}}
             ],
             "instructions": ""
             }}
-        ],
-        "grocery_list": [
-            {{"name": "", "total_quantity": "", "unit": "", "category": ""}}
         ]
         }}
 
-        GROCERY LIST RULES:
-        - Consolidate duplicate ingredients across all meals into a single entry.
-        - Group by category: Produce, Protein, Dairy, Grains, Pantry, Spices.
-        - Quantities must account for all meals combined.
-        - No ingredient should appear twice in the grocery list.
+        INGREDIENTS LIST RULES:
+        1. Ingredients should be grouped into Produce, Proteins, Pantry, Dairy, Grains, Spices.
+        2. Pantry would be the default type if the ingredient does not group into the other types. 
         """
 
     return MEAL_PLAN_PROMPT.format(

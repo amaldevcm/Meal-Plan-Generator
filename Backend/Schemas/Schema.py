@@ -9,10 +9,8 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
-    phone_number = Column(String)
     password = Column(String, nullable=False)
     current_preferences = Column(UUID(as_uuid=True))
-    current_meal_plan = Column(UUID(as_uuid=True))
     created_date = Column(DateTime)
     updated_date = Column(DateTime)
 
