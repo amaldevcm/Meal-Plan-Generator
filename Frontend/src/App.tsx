@@ -113,12 +113,6 @@ export default function App() {
     },
   }
 
-  const pageTransition = {
-    type: 'tween',
-    ease: 'anticipate',
-    duration: 0.4,
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
       <AnimatePresence mode="wait">
@@ -129,7 +123,6 @@ export default function App() {
             animate="in"
             exit="out"
             variants={pageVariants}
-            transition={pageTransition}
             className="h-full"
           >
             <AuthStep onNext={handleAuthNext} />
@@ -143,7 +136,6 @@ export default function App() {
             animate="in"
             exit="out"
             variants={pageVariants}
-            transition={pageTransition}
             className="h-full"
           >
             <DietStep
@@ -162,7 +154,6 @@ export default function App() {
             animate="in"
             exit="out"
             variants={pageVariants}
-            transition={pageTransition}
             className="h-full"
           >
             <GoalsStep
@@ -181,7 +172,6 @@ export default function App() {
             animate="in"
             exit="out"
             variants={pageVariants}
-            transition={pageTransition}
             className="h-full relative"
           >
             {activeTab === 'meals' ? (
