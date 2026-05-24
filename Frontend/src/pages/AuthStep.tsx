@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import axios from 'axios'
+import { toast, Toaster } from 'react-hot-toast'
 
 
 type AppStep = 'auth' | 'diet' | 'goals' | 'main'
@@ -37,29 +38,51 @@ export function AuthStep({ onNext }: AuthStepProps) {
             axios.post(SERVER_URL + '/api/login', userData, { headers: HEADERS }).then((response) => {
                 console.log(response.data)
                 if (response.data.status === 'success') {
+                    toast.success('Login successful!')
                     onNext(response.data.user, 'main')
+                } else {
+                    if (response.data.message == "Invalid email or password") {
+                        toast.error('Invalid email or password')
+                    } else if (response.data.message == "User not found") {
+                        toast.error('User not found. Please sign up first.')
+                    } else if (response.data.message == "The password does not match the supplied hash") {
+                        toast.error('Invalid email or password')
+                    } else {
+                        toast.error('An error occurred during login. Please try again.')
+                    }
                 }
             }).catch((error) => {
                 console.error('Error during login:', error)
+                toast.error('An error occurred during login. Please try again.')
             })
             return
         } else {
             if (!userData.name) {
-                alert('Please enter your name to sign up.')
+                toast.error('Please enter your name to sign up.')
                 return
             }
 
             axios.post(SERVER_URL + '/api/signup', userData, { headers: HEADERS }).then((response) => {
                 console.log(response.data)
+                if (response.data.status === 'error') {
+                    if (response.data.message == "User already exists") {
+                        toast.error('User already exists. Please log in instead.')
+                    }
+                } else {
+                    toast.success('Account created successfully!')
+                    setIsLogin(true)
+                    onNext(userData, 'diet')
+                }
             }).catch((error) => {
                 console.error('Error during signup:', error)
+                toast.error('An error occurred during signup. Please try again.')
             })
-            onNext(userData, 'diet')
         }
     }
 
     return (
         <div className="min-h-screen bg-warm px-6 py-12 flex flex-col max-w-md mx-auto">
+            <Toaster position="top-right" />
             <div className="flex-1 flex flex-col justify-center">
                 <motion.div
                     initial={{

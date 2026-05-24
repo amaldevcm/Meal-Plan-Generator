@@ -5,6 +5,7 @@ import { ChipSelect } from '../components/ChipSelect'
 import { ProgressDots } from '../components/ProgressDots'
 import type { UserState } from '../types'
 import axios from 'axios';
+import { MealPlanLoader } from '../components/MealPlanLoader'
 
 interface GoalsStepProps {
     userState: UserState
@@ -83,6 +84,7 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
             setIsGenerating(false)
         })
     }
+
     const container = {
         hidden: {
             opacity: 0,
@@ -94,6 +96,7 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
             },
         },
     }
+
     const item = {
         hidden: {
             opacity: 0,
@@ -104,6 +107,11 @@ export function GoalsStep({ userState, updateState, onNext, onBack }: GoalsStepP
             y: 0,
         },
     }
+
+    if (isGenerating) {
+        return <MealPlanLoader message="Generating your meal plan..." />
+    }
+
     return (
         <div className="min-h-screen bg-warm flex flex-col max-w-md mx-auto">
             <div className="px-6 pt-12 pb-4 flex items-center justify-between">

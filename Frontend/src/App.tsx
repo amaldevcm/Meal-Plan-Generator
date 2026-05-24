@@ -74,6 +74,7 @@ export default function App() {
             quantity: formatQty(ing.quantity, ing.unit),
             category: inferCategory(ing.type),
             acquired: false,
+            price: 0.00,
           })
           existingNames.add(ing.name.toLowerCase())
         }
@@ -187,6 +188,7 @@ export default function App() {
               <MealPlans
                 userState={userState}
                 onAddToGroceries={addMealToGroceries}
+                editPreferences={() => setStep('diet')}
               />
             ) : (
               <Ingredients groceries={groceries} onToggle={toggleGrocery} />

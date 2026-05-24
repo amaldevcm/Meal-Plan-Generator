@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { Settings, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { MealCard } from '../components/MealCard'
-import type { UserState, Meal } from '../types'
+import { type UserState, type Meal, ImgData } from '../types'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { MealPlanLoader } from '../components/MealPlanLoader'
@@ -9,6 +9,7 @@ import { MealPlanLoader } from '../components/MealPlanLoader'
 interface MealPlansProps {
     userState: UserState
     onAddToGroceries: (meal: Meal) => number
+    editPreferences: () => void
 }
 
 const HEADERS = {
@@ -16,9 +17,10 @@ const HEADERS = {
     'Accept': 'application/json',
 }
 
-export function MealPlans({ userState, onAddToGroceries }: MealPlansProps) {
+export function MealPlans({ userState, onAddToGroceries, editPreferences }: MealPlansProps) {
     const SERVER_URL = import.meta.env.VITE_SERVER_URL;
     const [isLoading, setIsLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [mealPlan, setMealPlan] = useState([]);
 
     const [totalCalories, setTotalCalories] = useState(0);
@@ -29,11 +31,17 @@ export function MealPlans({ userState, onAddToGroceries }: MealPlansProps) {
             .then(response => {
                 console.log(response.data)
                 if (response.data.status === "success") {
+                    // Assign random emojis to meals
+                    response.data.mealPlans.forEach((meal: Meal) => {
+                        meal.emoji = ImgData.emoji[Math.floor(Math.random() * ImgData.emoji.length)]
+                    })
+
                     setMealPlan(response.data.mealPlans);
-                    const totalCals = mealPlan.reduce(
-                        (sum, meal) => sum + meal['calories_per_serving'],
+                    const totalCals = response.data.mealPlans.reduce(
+                        (sum: number, meal: Meal) => sum + meal['calories_per_serving'],
                         0
                     )
+
                     console.log("Total calories:", totalCals);
                     setTotalCalories(totalCals);
                     setIsLoading(false);
@@ -44,25 +52,31 @@ export function MealPlans({ userState, onAddToGroceries }: MealPlansProps) {
     }, [setMealPlan])
 
     const handleNewMealPlan = () => {
-        setIsLoading(true);
+        setIsGenerating(true);
         axios.get(`${SERVER_URL}/api/newMealPlans`, { headers: HEADERS })
             .then((response) => {
                 if (response.data.status == "success") {
+                    response.data.mealPlans.forEach((meal: Meal) => {
+                        meal.emoji = ImgData.emoji[Math.floor(Math.random() * ImgData.emoji.length)]
+                    })
                     setMealPlan(response.data.mealPlans);
-                    const totalCals = mealPlan.reduce(
-                        (sum, meal) => sum + meal['calories_per_serving'],
+                    const totalCals = response.data.mealPlans.reduce(
+                        (sum: number, meal: Meal) => sum + meal['calories_per_serving'],
                         0,
                     )
                     setTotalCalories(totalCals);
-                    setIsLoading(false);
+                    setIsGenerating(false);
                 }
             }).catch((error) => {
                 console.error('Error saving preferences:', error)
             })
     }
 
+    if (isGenerating) {
+        return <MealPlanLoader message="Generating your meal plan..." />
+    }
     if (isLoading) {
-        return <MealPlanLoader />
+        return <MealPlanLoader message="Loading your meal plan..." />
     }
 
     return (
@@ -70,13 +84,13 @@ export function MealPlans({ userState, onAddToGroceries }: MealPlansProps) {
             <header className="px-6 pt-12 pb-6 bg-surface rounded-b-3xl shadow-sm sticky top-0 z-20">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <p className="text-sm text-gray-500 mb-1">Good morning,</p>
+                        <p className="text-sm text-gray-500 mb-1">Good day,</p>
                         <h1 className="font-serif text-2xl text-gray-900">
                             Hi, {userState.name || 'Chef'}
                         </h1>
                     </div>
                     <button
-                        onClick={() => alert('Preferences coming soon!')}
+                        onClick={editPreferences}
                         className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-warm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-xs font-medium"
                     >
                         <SlidersHorizontal size={14} />
@@ -153,7 +167,6 @@ export function MealPlans({ userState, onAddToGroceries }: MealPlansProps) {
                         >
                             <MealCard
                                 meal={meal}
-                                defaultExpanded={index === 0}
                                 onAddToGroceries={onAddToGroceries}
                             />
                         </motion.div>

@@ -31,4 +31,9 @@ export interface Ingredient {
     quantity: string
     category: 'Produce' | 'Proteins' | 'Dairy' | 'Grains' | 'Pantry' | 'Spices'
     acquired: boolean
+    price: number
+}
+
+export const ImgData = {
+    emoji: ['🥗', '🥙', '🍲', '🍛', '🍜', '🍣', '🍤', '🍕', '🌮']
 }

@@ -11,21 +11,48 @@ interface IngredientsProps {
 
 export function Ingredients({ groceries, onToggle }: IngredientsProps) {
     const [searchQuery, setSearchQuery] = useState('')
+
     const filteredIngredients = groceries.filter((ing) =>
         ing.name.toLowerCase().includes(searchQuery.toLowerCase()),
     )
+
     const acquiredCount = groceries.filter((i) => i.acquired).length
     const totalCount = groceries.length
     const progress = totalCount > 0 ? (acquiredCount / totalCount) * 100 : 0
+    const totalCost = groceries.reduce((sum, i) => sum + i.price, 0)
+    const remainingCost = groceries
+        .filter((i) => !i.acquired)
+        .reduce((sum, i) => sum + i.price, 0)
+
     const categories = Array.from(
         new Set(filteredIngredients.map((i) => i.category)),
     )
+
     return (
         <div className="min-h-screen bg-warm pb-24 max-w-md mx-auto">
             <header className="px-6 pt-12 pb-4 bg-surface sticky top-0 z-20 shadow-sm">
                 <h1 className="font-serif text-3xl text-gray-900 mb-4">Grocery List</h1>
 
-                <div className="mb-6">
+                <div className="bg-primary text-white rounded-2xl p-4 mb-4 shadow-float">
+                    <div className="flex items-end justify-between mb-1">
+                        <div>
+                            <p className="text-xs text-white/70 uppercase tracking-wider mb-1">
+                                Estimated Total
+                            </p>
+                            <p className="font-serif text-3xl">${totalCost.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs text-white/70 uppercase tracking-wider mb-1">
+                                Still to Buy
+                            </p>
+                            <p className="font-serif text-2xl text-accent-light">
+                                ${remainingCost.toFixed(2)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mb-4">
                     <div className="flex justify-between text-sm mb-2">
                         <span className="text-gray-500">Progress</span>
                         <span className="font-medium text-primary">
