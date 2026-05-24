@@ -21,25 +21,25 @@ async def root():
 # Signup API endpoint
 @app.post('/api/signup')
 async def signup(data: dict, response: Response):
-    user = create_user(data)
-    if user is None:
-        response.status_code = status.HTTP_409_CONFLICT
-        return {"status": "error", "message": "User already exists"}
-    
-    response.status_code = status.HTTP_200_OK
-    return {"status": "success", "message": "Signup successful", "user": user}
+    response_data = create_user(data)
+    if response_data.get("status") == "error":
+        response.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+        return response_data
+
+    response.status_code = status.HTTP_201_CREATED
+    return response_data
 
 # Login API endpoint
 @app.post('/api/login')
 async def login(data: dict, response: Response):
-    user = login_user(data.get("email"), data.get("password"))
+    response_data = login_user(data.get("email"), data.get("password"))
     
-    if user is None:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return {"status": "error", "message": "Invalid email or password"}
+    if response_data.get("status") == "error":
+        response.status_code = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+        return response_data
     
     response.status_code = status.HTTP_200_OK
-    return {"status": "success", "message": "Login successful", "user": user}
+    return response_data
 
 # Endpoint to set user preferences
 @app.post('/api/preferences')
@@ -50,25 +50,27 @@ async def set_preferences(preferences_data: dict, response: Response):
     
     response.status_code = status.HTTP_200_OK
     response_data = create_user_preferences(preferences_data)
-    return {"status": "success", "message": "Preferences saved successfully", "data": response_data}
+    return response_data
 
 # Get existing meal plans
 @app.get('/api/mealPlans')
 async def get_user_meal_plan(response: Response):
-    meal_plan = get_meal_plan()
-    if(meal_plan is None):
+    response_data = get_meal_plan()
+    if(response_data.get("status") == "error"):
         response.status_code = status.HTTP_204_NO_CONTENT
-        return {"status": "error", "mealPlans": None}
+        return response_data
+    
     response.status_code = status.HTTP_200_OK
-    return {"status": "success", "mealPlans": meal_plan}
+    return response_data
 
 # New meal plan generation API endpoint
 @app.get('/api/newMealPlans')
 async def get_new_meal_Plan(response: Response):
-    meal_plan = get_meal_plan(is_new=True)
-    if(meal_plan is None):
+    response_data = get_meal_plan(is_new=True)
+    if(response_data.get("status") == "error"):
         response.status_code = status.HTTP_204_NO_CONTENT
-        return {"status": "error", "mealPlans": None}
+        return response_data
+    
     response.status_code = status.HTTP_200_OK
-    return {"status": "success", "mealPlans": meal_plan}
+    return response_data
 

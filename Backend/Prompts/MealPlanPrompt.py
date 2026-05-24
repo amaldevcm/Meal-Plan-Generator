@@ -33,7 +33,7 @@ def get_meal_plan_prompt(preferences):
             "estimated_cost": 0.00,
             "calories_per_serving": 0,
             "ingredients": [
-                {{"name": "", "quantity": "", "unit": "", "type": ""}}
+                {{"name": "", "quantity": "", "unit": "", "type": "", "price": 0.00}}
             ],
             "instructions": ""
             }}
@@ -43,6 +43,7 @@ def get_meal_plan_prompt(preferences):
         INGREDIENTS LIST RULES:
         1. Ingredients should be grouped into Produce, Proteins, Pantry, Dairy, Grains, Spices.
         2. Pantry would be the default type if the ingredient does not group into the other types. 
+        3. Prices should be realistic and reflect the cost of the ingredient in the United States for the quantity specified.
         """
 
     return MEAL_PLAN_PROMPT.format(

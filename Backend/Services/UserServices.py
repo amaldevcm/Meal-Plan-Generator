@@ -29,14 +29,14 @@ def create_user(user_data: dict):
     # print("hashed password:", password)
 
     if not email:
-        raise ValueError("Email is required")
+        return {"status": "error", "message": "Email is required"}
     
     if not name:
-        raise ValueError("Name is required")
+        return {"status": "error", "message": "Name is required"}
 
     # Simple email format validation
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        raise ValueError("Invalid email format")
+        return {"status": "error", "message": "Invalid email format"}
     
     # save user to postgres
     try:
@@ -56,14 +56,14 @@ def create_user(user_data: dict):
         db.refresh(new_user)
     except Exception as e:
         db.rollback()
-        raise Exception(f"Error creating user: {str(e)}")
+        return {"status": "error", "message": str(e)}
     finally:
         db.close()
 
     current_user = new_user.__dict__.copy()
     current_user['current_preferences'] = None
     current_user.pop("password")
-    return current_user
+    return {"status": "success", "user": current_user}
 
 # User preferences creation function
 def create_user_preferences(preferences_data: dict):
@@ -91,7 +91,7 @@ def create_user_preferences(preferences_data: dict):
         db.refresh(new_preferences)
     except Exception as e:
         db.rollback()
-        raise Exception(f"Error creating user preferences: {str(e)}")
+        return {"status": "error", "message": str(e)}
     finally:
         db.close()
 
@@ -99,7 +99,7 @@ def create_user_preferences(preferences_data: dict):
     current_user['preferences'] = preferences_data
     current_user['meal_plan'] = meal_plan
 
-    return { "preferences": preferences_data, "meal_plan": meal_plan }
+    return {"status": "success", "preferences": preferences_data, "meal_plan": meal_plan}
 
 # Meal plan creation function
 def create_meal_plan(preferences: dict):
@@ -107,7 +107,7 @@ def create_meal_plan(preferences: dict):
     
     meal_plans = generateLLMResopnse(get_meal_plan_prompt(preferences))
     current_meal_plan = meal_plans["meal_plan"]
-    print(f"Type of meal plan: {type(current_meal_plan)}")
+    # print(f"Type of meal plan: {type(current_meal_plan)}")
 
     try:
         db = SessionLocal()
@@ -155,11 +155,11 @@ def login_user(email: str, password: str):
             current_user = current_user | get_user_preferences(current_user.get("current_preferences"))
 
             current_user.pop("password")
-            return current_user
+            return {"status": "success", "user": current_user}
         else:
-            raise ValueError("Invalid email or password")
+            return {"status": "error", "message": "Invalid email or password"}
     except Exception as e:
-        raise Exception(f"Error logging in: {str(e)}")
+        return {"status": "error", "message": str(e)}
     finally:
         db.close()
 
@@ -170,15 +170,16 @@ def get_meal_plan(is_new:bool = False):
     db = SessionLocal()
     try:
         if(is_new):
-            return create_meal_plan(current_user_preferences)
+            return {"status": "success", "mealPlans": create_meal_plan(current_user_preferences)}
+        
         meal_plan = db.query(MealPlan).filter(MealPlan.user_id == current_user.get("id")).all()       
 
     except Exception as e:
-        raise Exception(f"Error fetching meal plan {str(e)}")
+        return {"status": "error", "message": str(e)}
     finally:
         db.close()
-    return meal_plan
-    
+    return {"status": "success", "mealPlans": meal_plan}
+
 # Fetch user preferences
 def get_user_preferences(preference_id: str):
     global current_user, current_user_preferences
@@ -187,7 +188,7 @@ def get_user_preferences(preference_id: str):
         db = SessionLocal()
         preferences = db.query(UserPreference).filter(UserPreference.id == preference_id).first()
     except Exception as e:
-        raise Exception(f"Error fetching user preferences {str(e)}")
+        return {"status": "error", "message": str(e)}
     finally:
         db.close()
 
@@ -196,8 +197,7 @@ def get_user_preferences(preference_id: str):
     current_user_preferences.pop("updated_date")
     current_user_preferences.pop("user_id")
     current_user_preferences.pop("id")
-    return current_user_preferences
-    
+    return {"status": "success", "preferences": current_user_preferences}
 
 # Get current user and preferences
 def get_current_user():
