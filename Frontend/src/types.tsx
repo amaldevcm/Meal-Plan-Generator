@@ -12,6 +12,7 @@ export interface MealIngredient {
     quantity: number
     unit: string
     type: string
+    price: number
 }
 
 export interface Meal {

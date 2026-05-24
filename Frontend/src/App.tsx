@@ -74,7 +74,7 @@ export default function App() {
             quantity: formatQty(ing.quantity, ing.unit),
             category: inferCategory(ing.type),
             acquired: false,
-            price: 0.00,
+            price: ing.price,
           })
           existingNames.add(ing.name.toLowerCase())
         }

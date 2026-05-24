@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { toast, Toaster } from 'react-hot-toast'
 
@@ -24,6 +24,7 @@ const HEADERS = {
 
 export function AuthStep({ onNext }: AuthStepProps) {
     const [isLogin, setIsLogin] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const [userData, setUserData] = useState<UserData>({
         name: '',
         email: '',
@@ -33,7 +34,7 @@ export function AuthStep({ onNext }: AuthStepProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-
+        setIsLoading(true)
         if (isLogin) {
             axios.post(SERVER_URL + '/api/login', userData, { headers: HEADERS }).then((response) => {
                 console.log(response.data)
@@ -54,6 +55,8 @@ export function AuthStep({ onNext }: AuthStepProps) {
             }).catch((error) => {
                 console.error('Error during login:', error)
                 toast.error('An error occurred during login. Please try again.')
+            }).finally(() => {
+                setIsLoading(false)
             })
             return
         } else {
@@ -76,6 +79,8 @@ export function AuthStep({ onNext }: AuthStepProps) {
             }).catch((error) => {
                 console.error('Error during signup:', error)
                 toast.error('An error occurred during signup. Please try again.')
+            }).finally(() => {
+                setIsLoading(false)
             })
         }
     }
@@ -171,8 +176,15 @@ export function AuthStep({ onNext }: AuthStepProps) {
                         type="submit"
                         className="w-full bg-primary text-white py-4 rounded-xl font-medium mt-6 flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors shadow-float"
                     >
-                        {isLogin ? 'Sign In' : 'Get Started'}
-                        <ArrowRight size={18} />
+                        {isLogin ? 'Log In' : 'Get Started'}
+                        {isLoading ? (
+                            <Loader2
+                                size={18}
+                                className="animate-spin"
+                            />
+                        ) : (
+                            <ArrowRight size={18} />
+                        )}
                     </button>
                 </form>
 
