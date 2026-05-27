@@ -78,11 +78,11 @@ npm run dev
 
 ```env
 # Supabase configuration
-SUPABASE_HOST="db.hxenujasdfamafgrftwodbwbaxzawjl.supabase.co"
+SUPABASE_HOST="db.hxmafgrftwodbw.supabase.co"
 SUPABASE_PORT="5432"
 SUPABASE_DB="postgres"
 SUPABASE_USER="postgres"
-SUPABASE_PASSWORD="XHMaDasdfahfghdfgsdfgBpOaXxgr9i"
+SUPABASE_PASSWORD="HghdfgsdfgBpxgr9i"
 
 # JWT configuration
 JWT_SECRET_KEY="qwertyuio"
@@ -90,7 +90,7 @@ JWT_ALGORITHM="HS256"
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Groq API configuration
-GROQ_API_KEY="gsk_ixx5D4yCbGMqUaauoQ1aatgpWGdyb3FYEyQ21TdfsdfaKNMffXS5hplCKiP5ic"
+GROQ_API_KEY="ixx5D4yCffXS5hplCKiP5ic"
 
 ```
 
@@ -171,23 +171,21 @@ mealplanner-ai/
 | created_date | DateTime |
 | updated_date | DateTime |
 
----
-
-## 📡 API Endpoints
-
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/signup` | Register new user |
-| POST | `/auth/login` | Login, returns access token |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/logout` | Invalidate refresh token |
-
 ### Meal Plan
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/meal-plan/generate` | Generate 5-meal plan |
-| GET | `/meal-plan/history` | Get past meal plans |
+| Column | Type |
+|--------|------|
+| id | UUID (PK) |
+| user_id | UUID (FK) |
+| meal_number | Integer |
+| meal_name | String |
+| cuisine_type | String |
+| cook_time_minutes | Integer |
+| estimated_cost | Double |
+| calories_per_serving | Integer |
+| ingredients | Array(JSON) |
+| instructions | String |
+| created_date | DateTime |
+| updated_date | DateTime |
 
 ---
 
